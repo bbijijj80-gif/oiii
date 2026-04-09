@@ -8,11 +8,21 @@
 
 Важно: Используйте этот скрипт только на сетях, которыми вы владеете или имеете
 право тестировать. Несанкционированный доступ к чужим сетям незаконен.
+
+ПРИМЕЧАНИЕ: Для работы скрипта требуется:
+1. Реальный Wi-Fi адаптер в системе
+2. Запуск от имени root/administrator
+3. Установленный wpa_supplicant (для Linux)
 """
 
 import time
+import sys
 import pywifi
 from pywifi import const
+
+
+# Глобальная переменная для режима эмуляции (тестирование без оборудования)
+EMULATION_MODE = False
 
 
 def create_wifi_profile(ssid: str, password: str) -> pywifi.Profile:
@@ -39,7 +49,7 @@ def create_wifi_profile(ssid: str, password: str) -> pywifi.Profile:
     return profile
 
 
-def test_wifi_connection(ssid: str, passwords_file: str, delay: int = 3) -> None:
+def test_wifi_connection(ssid: str, passwords_file: str, delay: int = 3, emulation: bool = False) -> None:
     """
     Тестирует подключение к Wi-Fi сети используя список паролей из файла.
     
@@ -58,6 +68,7 @@ def test_wifi_connection(ssid: str, passwords_file: str, delay: int = 3) -> None
         ssid: Название целевой Wi-Fi сети
         passwords_file: Путь к файлу со списком паролей (по одному в строке)
         delay: Задержка между попытками в секундах (для стабилизации адаптера)
+        emulation: Если True, работает в режиме эмуляции без реального оборудования
     """
     # Инициализация объекта PyWiFi
     # PyWiFi - это основной класс библиотеки, предоставляющий доступ 
@@ -66,7 +77,27 @@ def test_wifi_connection(ssid: str, passwords_file: str, delay: int = 3) -> None
     
     # Получаем первый доступный беспроводной интерфейс
     # В системе может быть несколько сетевых адаптеров, поэтому выбираем первый активный
-    interface = wifi.interfaces()[0] if wifi.interfaces() else None
+    interface = None
+    try:
+        interfaces = wifi.interfaces()
+        if interfaces:
+            interface = interfaces[0]
+    except Exception as e:
+        print(f"⚠️  Предупреждение: Не удалось получить список интерфейсов: {e}")
+        if not emulation:
+            print("❌ Ошибка: Не найден беспроводной сетевой адаптер!")
+            print("\n💡 Решение:")
+            print("   1. Убедитесь, что Wi-Fi адаптер подключен и включен")
+            print("   2. Запустите скрипт от имени root/administrator")
+            print("   3. Для Linux: установите wpa_supplicant")
+            print("   4. Или используйте режим эмуляции: python script.py --emulate")
+            return
+    
+    # Если интерфейс не найден, но включен режим эмуляции - работаем в демо-режиме
+    if not interface and emulation:
+        print("🔧 Режим эмуляции: работа без реального Wi-Fi адаптера")
+        _run_emulation_test(ssid, passwords_file, delay)
+        return
     
     if not interface:
         print("❌ Ошибка: Не найден беспроводной сетевой адаптер!")
@@ -167,6 +198,63 @@ def test_wifi_connection(ssid: str, passwords_file: str, delay: int = 3) -> None
     print("=" * 60)
 
 
+def _run_emulation_test(ssid: str, passwords_file: str, delay: int) -> None:
+    """
+    Запускает эмуляцию тестирования Wi-Fi подключения без реального оборудования.
+    
+    Эта функция полезна для демонстрации работы скрипта и тестирования логики
+    без необходимости наличия физического Wi-Fi адаптера.
+    
+    Args:
+        ssid: Название целевой Wi-Fi сети
+        passwords_file: Путь к файлу со списком паролей
+        delay: Задержка между попытками в секундах
+    """
+    print(f"\n🎯 Целевая сеть (эмуляция): {ssid}")
+    print(f"📄 Файл с паролями: {passwords_file}")
+    print("-" * 60)
+    
+    # Чтение списка паролей из файла
+    try:
+        with open(passwords_file, 'r', encoding='utf-8') as f:
+            passwords = [line.strip() for line in f if line.strip()]
+    except FileNotFoundError:
+        print(f"❌ Ошибка: Файл '{passwords_file}' не найден!")
+        return
+    except Exception as e:
+        print(f"❌ Ошибка при чтении файла: {e}")
+        return
+    
+    if not passwords:
+        print("❌ Ошибка: Файл с паролями пуст!")
+        return
+    
+    print(f"📊 Найдено паролей для проверки: {len(passwords)}")
+    print("-" * 60)
+    
+    # Эмуляция цикла тестирования паролей
+    for index, password in enumerate(passwords, 1):
+        print(f"\n🔑 Попытка #{index}: Проверка пароля '{password}'")
+        print("   🔄 Попытка подключения...")
+        
+        # Эмулируем задержку подключения
+        time.sleep(min(delay, 1))  # Укороченная задержка для демо
+        
+        # В режиме эмуляции последний пароль считается успешным (для демонстрации)
+        if index == len(passwords):
+            print(f"   ✅ УСПЕХ (эмуляция): Подключение установлено с паролем '{password}'")
+        else:
+            print(f"   ❌ НЕУДАЧА (эмуляция): Ошибка аутентификации")
+            print(f"   📊 Статус: IFACE_DISCONNECTED")
+        
+        # Задержка перед следующей попыткой
+        time.sleep(delay)
+    
+    print("\n" + "=" * 60)
+    print("🏁 Тестирование завершено (режим эмуляции)!")
+    print("=" * 60)
+
+
 def main():
     """
     Основная функция запуска скрипта.
@@ -180,6 +268,7 @@ def main():
     1. Создайте файл config_test.txt с паролями (по одному в строке)
     2. Измените переменную TARGET_SSID на название вашей сети
     3. Запустите скрипт с правами администратора/root
+    4. Или используйте --emulate для режима эмуляции
     """
     
     # === КОНФИГУРАЦИЯ ===
@@ -195,15 +284,22 @@ def main():
     # Рекомендуется 3-5 секунд для стабильной работы адаптера
     CONNECTION_DELAY = 3
     
+    # Проверяем аргументы командной строки
+    emulation_mode = '--emulate' in sys.argv or '-e' in sys.argv
+    
     # === ЗАПУСК ТЕСТИРОВАНИЯ ===
     print("🚀 Запуск скрипта проверки Wi-Fi подключения...")
-    print("⚠️  Требуется запуск от имени администратора/root!")
+    if emulation_mode:
+        print("🔧 Режим эмуляции (без реального оборудования)")
+    else:
+        print("⚠️  Требуется запуск от имени администратора/root!")
     print()
     
     test_wifi_connection(
         ssid=TARGET_SSID,
         passwords_file=PASSWORDS_FILE,
-        delay=CONNECTION_DELAY
+        delay=CONNECTION_DELAY,
+        emulation=emulation_mode
     )
 
 
