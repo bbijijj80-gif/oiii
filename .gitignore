@@ -1,1 +1,1 @@
-Nothing should be ignored based on the provided file changes, as they only include source code (.c file) and documentation (README.md) without any build artifacts, dependencies, or temporary files.
+Nothing should be ignored based on the provided file changes. The only modified file is 'LegacyWdmDriver.c', which is a source code file and should not be added to .gitignore.

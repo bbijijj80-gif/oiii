@@ -428,7 +428,8 @@ static VOID EnumerateProcesses(
         RtlCopyMemory(
             ProcessInfo[count].ProcessName,
             processName,
-            min(ProcessInfo[count].NameLength * sizeof(WCHAR), sizeof(processName) - sizeof(WCHAR))
+            ((ProcessInfo[count].NameLength * sizeof(WCHAR)) < (sizeof(processName) - sizeof(WCHAR))) ? 
+            (ProcessInfo[count].NameLength * sizeof(WCHAR)) : (sizeof(processName) - sizeof(WCHAR))
         );
         
         // Вывод информации в отладочную консоль
