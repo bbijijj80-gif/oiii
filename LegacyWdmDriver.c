@@ -19,6 +19,12 @@
 #include <wdm.h>
 #include <ntstrsafe.h>
 
+// Прототипы недокументированных функций ядра
+// Эти функции отсутствуют в стандартных заголовках WDK, но доступны в ntoskrnl.exe
+NTKERNELAPI PCHAR NTAPI PsGetProcessImageFileName(_In_ PEPROCESS Process);
+NTKERNELAPI NTSTATUS NTAPI PsGetNextProcess(_In_ PEPROCESS Process, _Out_ PEPROCESS *NextProcess);
+NTKERNELAPI HANDLE NTAPI PsGetInheritedFromUniqueProcessId(_In_ PEPROCESS Process);
+
 // Определение устройства и символьной ссылки
 #define DEVICE_NAME L"\\Device\\LegacyWdmDriver"
 #define SYMBOLIC_LINK_NAME L"\\DosDevices\\LegacyWdmDriver"
@@ -255,7 +261,6 @@ static NTSTATUS GetProcessList(PIRP Irp)
     PPROCESS_INFO processInfo;
     ULONG outputBufferLength;
     ULONG actualCount = 0;
-    NTSTATUS status;
     
     // Получение информации о запросе
     stackLocation = IoGetCurrentIrpStackLocation(Irp);
@@ -416,8 +421,8 @@ static VOID EnumerateProcesses(
         #endif
         
         // Заполнение структуры информации о процессе
-        ProcessInfo[count].ProcessId = HandleToULong(processId);
-        ProcessInfo[count].ParentProcessId = HandleToULong(parentProcessId);
+        ProcessInfo[count].ProcessId = (ULONG)HandleToULong(processId);
+        ProcessInfo[count].ParentProcessId = (ULONG)HandleToULong(parentProcessId);
         ProcessInfo[count].NameLength = (USHORT)wcslen(processName);
         
         RtlCopyMemory(

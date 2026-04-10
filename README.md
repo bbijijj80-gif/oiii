@@ -69,8 +69,17 @@
 
 #### C/C++ настройки:
 - **Warning Level**: Level 4 (/W4)
-- **Treat Warning As Errors**: No (/WX-)
+- **Treat Warning As Errors**: Yes (/WX) - по умолчанию в WDK
 - **SDL checks**: No (для учебных целей)
+
+**Важно**: Если вы получаете ошибки компиляции из-за недокументированных функций, убедитесь, что в файле драйвера добавлены прототипы функций после `#include`:
+
+```c
+// Прототипы недокументированных функций ядра
+NTKERNELAPI PCHAR NTAPI PsGetProcessImageFileName(_In_ PEPROCESS Process);
+NTKERNELAPI NTSTATUS NTAPI PsGetNextProcess(_In_ PEPROCESS Process, _Out_ PEPROCESS *NextProcess);
+NTKERNELAPI HANDLE NTAPI PsGetInheritedFromUniqueProcessId(_In_ PEPROCESS Process);
+```
 
 #### Linker настройки:
 - **Additional Library Directories**: `$(DDK_LIB_PATH)`
