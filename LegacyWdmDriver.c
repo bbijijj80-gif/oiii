@@ -225,7 +225,7 @@ static NTSTATUS DispatchDeviceControl(
             status = GetProcessList(Irp);
             if (NT_SUCCESS(status)) {
                 // Получаем количество возвращенных байт из контекста IRP
-                bytesReturned = Irp->IoStatus.Information;
+                bytesReturned = (ULONG)Irp->IoStatus.Information;
             }
             break;
             
@@ -233,7 +233,7 @@ static NTSTATUS DispatchDeviceControl(
             DbgPrint("[LegacyWdmDriver] Received IOCTL_TEST_CONNECTION\n");
             status = TestConnection(Irp);
             if (NT_SUCCESS(status)) {
-                bytesReturned = Irp->IoStatus.Information;
+                bytesReturned = (ULONG)Irp->IoStatus.Information;
             }
             break;
             
