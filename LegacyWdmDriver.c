@@ -340,10 +340,12 @@ VOID EnumerateProcesses(
 
 // Процедура выгрузки драйвера
 VOID DriverUnload(
-    _In_ PDRIVER_OBJECT /* DriverObject */
+    _In_ PDRIVER_OBJECT DriverObject
 )
 {
     UNICODE_STRING symbolicLinkName;
+
+    UNREFERENCED_PARAMETER(DriverObject);
 
     DbgPrint("[LegacyWdmDriver] DriverUnload called\n");
 
