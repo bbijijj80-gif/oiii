@@ -1,0 +1,126 @@
+/*
+ * LegacyWdmDriver.inf
+ * 
+ * INF файл для установки WDM драйвера LegacyWdmDriver
+ * 
+ * Инструкция по использованию:
+ * 1. Скомпилируйте драйвер в Visual Studio с WDK
+ * 2. Отредактируйте этот файл, указав правильные пути к файлам драйвера
+ * 3. Установите драйвер через диспетчер устройств или команду:
+ *    pnputil /add-driver LegacyWdmDriver.inf /install
+ * 
+ * Внимание: Для установки драйвера требуются права администратора
+ * и отключенная проверка подписи драйверов (в режиме разработки)
+ */
+
+[Version]
+Signature="$Windows NT$"
+Class=LegacyDriver
+ClassGuid={8ECC055D-047F-11D1-A537-0000F8753ED1}
+Provider=%ProviderName%
+DriverVer=01/01/2024,1.0.0.0
+CatalogFile=LegacyWdmDriver.cat
+
+[Manufacturer]
+%ManufacturerName%=Standard,NTamd64
+
+[Standard.NTamd64]
+%DeviceDesc%=DriverInstall, Root\LegacyWdmDriver
+
+[DriverInstall]
+CopyFiles=DriverFiles
+AddReg=DriverRegistry
+
+[DriverInstall.Services]
+AddService=%ServiceName%,0x00000002,DriverService
+
+[DriverService]
+DisplayName=%ServiceDisplayName%
+ServiceType=1
+StartType=3
+ErrorControl=1
+ServiceBinary=%12%\%DriverFileName%
+LoadOrderGroup=Base
+
+[DriverRegistry]
+HKR,,DevLoader,,*ntkern
+HKR,,NTMPDriver,,%DriverFileName%
+HKR,,EnumPropPages32,,"msenum.dll"
+
+[DriverFiles]
+%DriverFileName%,,,2
+
+[SourceDisksNames]
+Disk1=%DiskDescription%,,,\
+
+[SourceDisksFiles.amd64]
+%DriverFileName%=1,,
+
+[DestinationDir]
+DestDir=12,driverfiles,,1
+
+[Strings]
+ProviderName="Your Company Name"
+ManufacturerName="Your Company Name"
+DeviceDesc="Legacy WDM Driver Device"
+ServiceDisplayName="Legacy WDM Driver Service"
+ServiceName="LegacyWdmDriver"
+DriverFileName="LegacyWdmDriver.sys"
+DiskDescription="Legacy WDM Driver Installation Disk"
+
+; Инструкции по сборке в Visual Studio с WDK:
+; =====================================================
+; 
+; 1. Установка необходимых компонентов:
+;    - Visual Studio 2019/2022 с рабочей нагрузкой "Разработка классических приложений на C++"
+;    - Windows Driver Kit (WDK) последней версии
+;    - Windows SDK
+;
+; 2. Создание проекта:
+;    - Файл -> Создать -> Проект
+;    - Выберите шаблон "Kernel Mode Driver (UMDF)" или "Kernel Mode Driver (KMDF/WDM)"
+;    - Если шаблоны не отображаются, убедитесь, что WDK установлен правильно
+;
+; 3. Настройка проекта:
+;    - Добавьте файл LegacyWdmDriver.c в проект
+;    - Добавьте файл LegacyWdmDriver.inf в проект
+;    - В свойствах проекта укажите:
+;      * Configuration Type: Driver
+;      * Target Platform Version: Windows 10 или Windows 11
+;      * Platform Toolset: Windows Kernel Mode Drivers
+;
+; 4. Настройка линковщика:
+;    - Additional Library Directories: $(DDK_LIB_PATH)
+;    - Additional Dependencies: ntoskrnl.lib hal.lib wdm.lib
+;
+; 5. Сборка драйвера:
+;    - Сборка -> Сборка решения (Ctrl+Shift+B)
+;    - Выходные файлы будут в папке x64/Debug или x64/Release
+;
+; 6. Подпись драйвера (для тестирования):
+;    - В режиме разработки можно использовать тестовую подпись
+;    - Запустите Visual Studio от имени администратора
+;    - Используйте команду: signtool sign /v /t http://timestamp.digicert.com /fd sha256 /a LegacyWdmDriver.sys
+;
+; 7. Установка драйвера:
+;    - Отключите проверку подписи драйверов (только для разработки):
+;      bcdedit /set testsigning on
+;    - Перезагрузите компьютер
+;    - Установите драйвер через диспетчер устройств или pnputil
+;
+; 8. Тестирование:
+;    - Используйте DebugView для просмотра сообщений DbgPrint
+;    - Создайте пользовательское приложение для отправки IOCTL запросов
+;
+; 9. Очистка после тестирования:
+;    - Включите проверку подписи обратно:
+;      bcdedit /set testsigning off
+;    - Перезагрузите компьютер
+;
+; ВАЖНЫЕ ЗАМЕЧАНИЯ ПО БЕЗОПАСНОСТИ:
+; =================================
+; - Этот драйвер предназначен ТОЛЬКО для учебных целей
+; - Не используйте в производственных системах без надлежащей аудита безопасности
+; - Перечисление процессов из ядра может нарушать политики безопасности
+; - Современные версии Windows (11) имеют дополнительные защиты (HVCI, VBS)
+; - Для реальных задач используйте официальные API пользовательского режима
