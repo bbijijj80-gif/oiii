@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}</ProjectGuid>
+    <RootNamespace>rtl8188eu</RootNamespace>
+    <ProjectName>rtl8188eu</ProjectName>
+    <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
+    <ConfigurationType>Driver</ConfigurationType>
+    <DriverType>NDIS</DriverType>
+    <TARGETNAME>rtl8188eu</TARGETNAME>
+    <DriverTargetPlatform>Desktop</DriverTargetPlatform>
+    <DriverTargetPlatformVersion>10.0.17763.0</DriverTargetPlatformVersion>
+    <DriverTargetPlatformMinVersion>10.0.17763.0</DriverTargetPlatformMinVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <TargetVersion>Windows10</TargetVersion>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>WindowsApplicationForDrivers10.0</PlatformToolset>
+    <ConfigurationType>Driver</ConfigurationType>
+    <DriverType>NDIS</DriverType>
+    <NTDDI_VERSION>NTDDI_WIN10_RS5</NTDDI_VERSION>
+    <_NT_TARGET_VERSION>0xA00000C</_NT_TARGET_VERSION>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(KMDF_INC_PATH)$(KMDF_VER_PATH);$(DDK_INC_PATH);$(WDKContentRoot)\Include\$(TargetPlatformVersion)\km;$(WDKContentRoot)\Include\$(TargetPlatformVersion)\shared;$(WindowsSdkDir)\Include\$(TargetPlatformVersion)\km;$(WindowsSdkDir)\Include\$(TargetPlatformVersion)\shared;$(VC_IncludePath);$(WindowsSDK_IncludePath);%(IncludePath)</IncludePath>
+    <LibraryPath>$(KMDF_LIB_PATH)$(KMDF_VER_PATH);$(DDK_LIB_PATH);$(WDKContentRoot)\Lib\$(TargetPlatformVersion)\km\x64;$(WDKContentRoot)\Lib\$(TargetPlatformVersion)\um\x64;$(WindowsSdkDir)\Lib\$(TargetPlatformVersion)\km\x64;$(WindowsSdkDir)\Lib\$(TargetPlatformVersion)\um\x64;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);%(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <PreprocessorDefinitions>NDIS60;NDIS_SUPPORT_NDIS60;UNICODE;_UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(KMDF_INC_PATH)$(KMDF_VER_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4201;4214;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>ndis.lib;wdmsec.lib;usbdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Native</SubSystem>
+      <Driver>Driver</Driver>
+      <EntryPointSymbol>DriverEntry</EntryPointSymbol>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+    </Link>
+    <Inf>
+      <SpecifyArchitecture>true</SpecifyArchitecture>
+      <SpecifyDriverVerDirectiveDate>true</SpecifyDriverVerDirectiveDate>
+      <SpecifyDriverVerDirectiveVersion>true</SpecifyDriverVerDirectiveVersion>
+    </Inf>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Inf Include="rtl8188eu.inf">
+      <TimeStamp>01/01/2024,1.0.0.1</TimeStamp>
+    </Inf>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="rtl8188eu.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="rtl8188eu.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
