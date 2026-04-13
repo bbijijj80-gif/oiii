@@ -1,0 +1,34 @@
+// Resource file for rtl8188eu driver
+// TP-LINK TL-WN727N v5.20
+
+#include <ntddk.h>
+#include <windef.h>
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     1,0,0,1
+PRODUCTVERSION  1,0,0,1
+FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
+FILEFLAGS       0
+FILEOS          VOS_NT_WINDOWS32
+FILETYPE        VFT_DRV
+FILESUBTYPE     VFT2_DRV_SYSTEM
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"
+        BEGIN
+            VALUE "CompanyName",      "TP-LINK"
+            VALUE "FileDescription", "TP-LINK TL-WN727N Wireless USB Adapter Driver v5.20"
+            VALUE "FileVersion",      "1.0.0.1"
+            VALUE "InternalName",     "rtl8188eu.sys"
+            VALUE "LegalCopyright",   "Copyright (C) 2024"
+            VALUE "OriginalFilename", "rtl8188eu.sys"
+            VALUE "ProductName",      "TP-LINK Wireless LAN Driver"
+            VALUE "ProductVersion",   "1.0.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END

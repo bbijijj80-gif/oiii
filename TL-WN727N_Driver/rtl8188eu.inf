@@ -1,0 +1,55 @@
+; INF-файл для драйвера адаптера TP-LINK TL-WN727N v5.20 (Realtek RTL8188EUS)
+; Для Windows Server 2019 x64
+; EWDK Compatible
+
+[Version]
+Signature = "$Windows NT$"
+Class = Net
+ClassGuid = {4d36e972-e325-11ce-bfc1-08002be10318}
+Provider = %MfgName%
+DriverVer = 01/01/2024,1.0.0.1
+CatalogFile = rtl8188eu.cat
+
+[Manufacturer]
+%MfgName% = Realtek,NTamd64
+
+[Realtek.NTamd64]
+%RTL8188EU.DeviceDesc% = RTL8188EU_Install, USB\VID_2357&PID_010C
+%RTL8188EU.DeviceDesc% = RTL8188EU_Install, USB\VID_2357&PID_010C&MI_00
+
+[RTL8188EU_Install]
+Characteristics = 0x84
+BusType = 12
+AddReg = RTL8188EU_AddReg
+CopyFiles = RTL8188EU.CopyFiles
+
+[RTL8188EU_Install.Services]
+AddService = rtl8188eu, 0x00000002, RTL8188EU_Service_Inst
+
+[RTL8188EU_Service_Inst]
+ServiceType = 1
+StartType = 3
+ErrorControl = 1
+ServiceBinary = %12%\rtl8188eu.sys
+DisplayName = %RTL8188EU.ServiceDisplName%
+Description = %RTL8188EU.ServiceDesc%
+
+[RTL8188EU_AddReg]
+HKR, Ndi, Service, 0, "rtl8188eu"
+HKR, Ndi\Interfaces, UpperRange, 0, "ndis5"
+HKR, Ndi\Interfaces, LowerRange, 0, "ethernet,tokenring,fddi"
+HKR, Parameters, InterruptMode, 0x00010001, 1
+HKR, Parameters, VendorDescription, 0, %RTL8188EU.DeviceDesc%
+
+[RTL8188EU.CopyFiles]
+rtl8188eu.sys,,,1
+rtl8188eu.cat,,,1
+
+[DestinationDirs]
+RTL8188EU.CopyFiles = 12
+
+[Strings]
+MfgName = "TP-LINK"
+RTL8188EU.DeviceDesc = "TP-LINK TL-WN727N Wireless USB Adapter v5.20"
+RTL8188EU.ServiceDisplName = "TP-LINK Wireless USB Driver Service"
+RTL8188EU.ServiceDesc = "Driver for TP-LINK TL-WN727N v5.20 (RTL8188EUS chipset)"
