@@ -3,6 +3,7 @@
 
 #include <ndis.h>
 
+#define MAC_ADDR_LEN                6
 #define NIC_VENDOR_ID               0x00E04C
 #define NIC_MAX_PACKET_SIZE         1514
 #define NIC_BUFFER_LENGTH           0x4000
@@ -20,10 +21,10 @@ typedef struct _MP_ADAPTER
     NDIS_HANDLE MiniportAdapterHandle;
     NDIS_HANDLE MiniportInterruptContext;
     ULONG MtuSize;
-    ULONG MediaConnectState;
-    ULONG LinkSpeed;
-    UCHAR PermanentAddress[NDIS_PHYSADDR_LENGTH];
-    UCHAR CurrentAddress[NDIS_PHYSADDR_LENGTH];
+    NDIS_MEDIA_CONNECT_STATE MediaConnectState;
+    NDIS_LINK_SPEED LinkSpeed;
+    UCHAR PermanentAddress[MAC_ADDR_LEN];
+    UCHAR CurrentAddress[MAC_ADDR_LEN];
     ULONG AdapterFlags;
     ULONG LookaheadSize;
     ULONG MaxTotalFrameSize;
@@ -69,8 +70,7 @@ MPInitialize(
         adapter->PacketFilter = NDIS_PACKET_TYPE_BROADCAST | NDIS_PACKET_TYPE_DIRECTED;
         adapter->MacOptions = NDIS_MAC_OPTION_TRANSFERS_NOT_PEND |
                               NDIS_MAC_OPTION_COPY_LOOKAHEAD_DATA |
-                              NDIS_MAC_OPTION_FULL_DUPLEX |
-                              NDIS_MAC_OPTION_NO_LOOPBACK_FILTER;
+                              NDIS_MAC_OPTION_FULL_DUPLEX;
 
         // Set permanent MAC address (example)
         adapter->PermanentAddress[0] = 0x00;
@@ -79,7 +79,7 @@ MPInitialize(
         adapter->PermanentAddress[3] = 0x12;
         adapter->PermanentAddress[4] = 0x34;
         adapter->PermanentAddress[5] = 0x56;
-        NdisMoveMemory(adapter->CurrentAddress, adapter->PermanentAddress, NDIS_PHYSADDR_LENGTH);
+        NdisMoveMemory(adapter->CurrentAddress, adapter->PermanentAddress, MAC_ADDR_LEN);
 
         NdisZeroMemory(&regAttrs, sizeof(NDIS_MINIPORT_ADAPTER_REGISTRATION_ATTRIBUTES));
         regAttrs.Header.Type = NDIS_OBJECT_TYPE_MINIPORT_ADAPTER_REGISTRATION_ATTRIBUTES;
@@ -87,16 +87,23 @@ MPInitialize(
         regAttrs.Header.Revision = NDIS_MINIPORT_ADAPTER_REGISTRATION_ATTRIBUTES_REVISION_1;
         regAttrs.MiniportAdapterContext = (NDIS_HANDLE)adapter;
         regAttrs.AttributeFlags = NDIS_MINIPORT_ATTRIBUTES_NDIS_WDM | NDIS_MINIPORT_ATTRIBUTES_SURPRISE_REMOVE_OK;
-        regAttrs.InterfaceType = NDIS_INTERFACE_TYPE_PCI;
+        regAttrs.InterfaceType = NDIS_INTERFACE_TYPE_USB;
 
         status = NdisMSetMiniportAttributes(MiniportAdapterHandle, &regAttrs);
         if (status != NDIS_STATUS_SUCCESS)
             break;
 
         // Indicate media connect status
-        NdisMIndicateStatusEx(MiniportAdapterHandle, NULL, NdisStatusMediaConnect, NULL, 0);
+        {
+            NDIS_LINK_STATE linkState;
+            NdisZeroMemory(&linkState, sizeof(NDIS_LINK_STATE));
+            linkState.MediaConnectState = MediaConnectStateConnected;
+            linkState.MediaDuplexState = MediaDuplexStateFull;
+            linkState.XmitLinkSpeed = 150000000;
+            linkState.RcvLinkSpeed = 150000000;
+            NdisMIndicateStatusEx(MiniportAdapterHandle, NULL, NdisStatusLinkState, &linkState, sizeof(NDIS_LINK_STATE));
+        }
         adapter->MediaConnectState = MediaConnectStateConnected;
-        adapter->LinkSpeed = 150000000; // 150 Mbps
 
     } while (FALSE);
 
@@ -152,10 +159,17 @@ MPRestart(
 )
 {
     PMP_ADAPTER adapter = (PMP_ADAPTER)MiniportAdapterContext;
+    NDIS_LINK_STATE linkState;
     UNREFERENCED_PARAMETER(RestartParameters);
 
     adapter->MediaConnectState = MediaConnectStateConnected;
-    NdisMIndicateStatusEx(adapter->MiniportAdapterHandle, NULL, NdisStatusMediaConnect, NULL, 0);
+    
+    NdisZeroMemory(&linkState, sizeof(NDIS_LINK_STATE));
+    linkState.MediaConnectState = MediaConnectStateConnected;
+    linkState.MediaDuplexState = MediaDuplexStateFull;
+    linkState.XmitLinkSpeed = 150000000;
+    linkState.RcvLinkSpeed = 150000000;
+    NdisMIndicateStatusEx(adapter->MiniportAdapterHandle, NULL, NdisStatusLinkState, &linkState, sizeof(NDIS_LINK_STATE));
     
     return NDIS_STATUS_SUCCESS;
 }
@@ -295,12 +309,6 @@ MPOidRequest(
             parms->BytesNeeded = sizeof(ULONG);
             break;
 
-        case OID_GEN_CURRENT_LOOKAHEAD:
-            *(PULONG)parms->Information.Buffer = adapter->LookaheadSize;
-            parms->BytesWritten = sizeof(ULONG);
-            parms->BytesNeeded = sizeof(ULONG);
-            break;
-
         case OID_GEN_DRIVER_VERSION:
         {
             USHORT version = (NIC_NDIS_MINIPORT_MAJOR_VERSION << 8) | NIC_NDIS_MINIPORT_MINOR_VERSION;
@@ -330,9 +338,9 @@ MPOidRequest(
 
         case OID_802_3_PERMANENT_ADDRESS:
         case OID_802_3_CURRENT_ADDRESS:
-            NdisMoveMemory(parms->Information.Buffer, adapter->PermanentAddress, NDIS_PHYSADDR_LENGTH);
-            parms->BytesWritten = NDIS_PHYSADDR_LENGTH;
-            parms->BytesNeeded = NDIS_PHYSADDR_LENGTH;
+            NdisMoveMemory(parms->Information.Buffer, adapter->PermanentAddress, MAC_ADDR_LEN);
+            parms->BytesWritten = MAC_ADDR_LEN;
+            parms->BytesNeeded = MAC_ADDR_LEN;
             break;
 
         default:
@@ -340,8 +348,8 @@ MPOidRequest(
             break;
     }
 
-    OidRequest->STATUS = status;
-    NdisMOidRequestComplete(adapter->MiniportAdapterHandle, OidRequest);
+    OidRequest->DATA.OidRequestStatus = status;
+    NdisMOidRequestComplete(adapter->MiniportAdapterHandle, OidRequest, status);
 
     return status;
 }
@@ -394,4 +402,18 @@ DriverEntry(
     }
 
     return NDIS_STATUS_SUCCESS;
+}
+
+VOID
+DriverUnload(
+    IN PDRIVER_OBJECT DriverObject
+)
+{
+    UNREFERENCED_PARAMETER(DriverObject);
+    
+    if (gDriverHandle != NULL)
+    {
+        NdisMDeregisterMiniportDriver(gDriverHandle);
+        gDriverHandle = NULL;
+    }
 }
