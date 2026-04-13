@@ -38,8 +38,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>$(WDKContentRoot)\Include\$(DDKVersion)\km;$(WDKContentRoot)\Include\$(DDKVersion)\shared;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryPath>$(WDKContentRoot)\Lib\$(DDKVersion)\km\x64;$(WDKContentRoot)\Lib\$(DDKVersion)\um\x64;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);</LibraryPath>
+    <IncludePath>$(KMDF_INC_PATH)$(KMDF_VER_PATH);$(DDK_INC_PATH);$(WDKContentRoot)\Include\$(TargetPlatformVersion)\km;$(WDKContentRoot)\Include\$(TargetPlatformVersion)\shared;$(WindowsSdkDir)\Include\$(TargetPlatformVersion)\km;$(WindowsSdkDir)\Include\$(TargetPlatformVersion)\shared;$(VC_IncludePath);$(WindowsSDK_IncludePath);%(IncludePath)</IncludePath>
+    <LibraryPath>$(KMDF_LIB_PATH)$(KMDF_VER_PATH);$(DDK_LIB_PATH);$(WDKContentRoot)\Lib\$(TargetPlatformVersion)\km\x64;$(WDKContentRoot)\Lib\$(TargetPlatformVersion)\um\x64;$(WindowsSdkDir)\Lib\$(TargetPlatformVersion)\km\x64;$(WindowsSdkDir)\Lib\$(TargetPlatformVersion)\um\x64;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);%(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
